@@ -29,4 +29,7 @@ def create_voice(voice_type):
         from voice.azure.azure_voice import AzureVoice
 
         return AzureVoice()
+    elif voice_type == "vits":
+        from voice.vits.vits_voice import VITSVoice
+        return VITSVoice()
     raise RuntimeError

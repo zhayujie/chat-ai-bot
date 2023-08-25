@@ -18,6 +18,7 @@ user_datas.pkl
 chatgpt_tool_hub/
 plugins/**/
 !plugins/bdunit
+!plugins/bgunit
 !plugins/dungeon
 !plugins/finish
 !plugins/godcmd

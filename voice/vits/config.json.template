@@ -1,0 +1,12 @@
+{
+    "server_url": "http://127.0.0.1:23456",
+    "api_key": "api_key",
+    "speaker_id": 0,
+    "format": "wav",
+    "lang": "auto",    
+    "length": 1.0,
+    "noise": 0.667,
+    "noisew": 0.8,
+    "max": 50,
+    "timeout": 60
+}
