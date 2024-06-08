@@ -15,7 +15,10 @@ QWEN_PLUS = "qwen-plus"
 QWEN_MAX = "qwen-max"
 
 GEMINI = "gemini"
-ZHIPU_AI = "glm-4"
+ZHIPU_AI = "glm-4-0520" 
+ZHIPU_AI_GLM4_FLASH = "glm-4-flash" #lowest cost
+ZHIPU_AI_GLM4_AIR = "glm-4-air" #balance of cost and efficiency
+
 MOONSHOT = "moonshot"
 
 
@@ -36,9 +39,9 @@ TTS_1 = "tts-1"
 TTS_1_HD = "tts-1-hd"
 
 MODEL_LIST = ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4", "wenxin", "wenxin-4", "xunfei", "claude", "claude-3-opus-20240229", "gpt-4-turbo",
-              "gpt-4-turbo-preview", "gpt-4-1106-preview", GPT4_TURBO_PREVIEW, GPT4_TURBO_01_25, GPT_4o, QWEN, GEMINI, ZHIPU_AI, MOONSHOT,
-              QWEN_TURBO, QWEN_PLUS, QWEN_MAX, LINKAI_35, LINKAI_4_TURBO, LINKAI_4o]
+              "gpt-4-turbo-preview", "gpt-4-1106-preview", GPT4_TURBO_PREVIEW, GPT4_TURBO_01_25, GPT_4o, QWEN, GEMINI, ZHIPU_AI, ZHIPU_AI_GLM4_FLASH, 
+              ZHIPU_AI_GLM4_AIR, MOONSHOT, QWEN_TURBO, QWEN_PLUS, QWEN_MAX, LINKAI_35, LINKAI_4_TURBO, LINKAI_4o]
 
 # channel
 FEISHU = "feishu"
-DINGTALK = "dingtalk"   
+DINGTALK = "dingtalk"
