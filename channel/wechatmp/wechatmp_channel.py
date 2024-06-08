@@ -78,6 +78,7 @@ class WechatMPChannel(ChatChannel):
         logger.info("[wechatmp] permanent media {} has been deleted".format(media_id))
 
     def send(self, reply: Reply, context: Context):
+        context['wait_for_reply'] = False
         receiver = context["receiver"]
         if self.passive_reply:
             if reply.type == ReplyType.TEXT or reply.type == ReplyType.INFO or reply.type == ReplyType.ERROR:

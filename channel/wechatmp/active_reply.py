@@ -1,3 +1,4 @@
+import threading
 import time
 
 import web
@@ -15,6 +16,16 @@ from config import conf, subscribe_msg
 
 # This class is instantiated once per query
 class Query:
+    def handle_timeout(self, channel: WechatMPChannel, context: Context):
+        busy_text = conf().get("wait_timeout_reply", None)
+
+        if context.get('wait_for_reply', False) and busy_text:
+            context['wait_for_reply'] = False
+            reply = Reply()
+            reply.type = ReplyType.TEXT
+            reply.content = busy_text
+            channel.send(reply, context)
+
     def GET(self):
         return verify_server(web.input())
 
@@ -55,6 +66,11 @@ class Query:
                 else:
                     context = channel._compose_context(wechatmp_msg.ctype, content, isgroup=False, msg=wechatmp_msg)
                 if context:
+                    # 等20s后进行超时反馈
+                    timer = threading.Timer(conf().get("wait_timeout", 20), self.handle_timeout, args=(channel, context))
+                    timer.start()
+                    context['wait_for_reply'] = True
+
                     channel.produce(context)
                 # The reply will be sent by channel.send() in another thread
                 return "success"
