@@ -152,7 +152,14 @@ class ChatChannel(Channel):
                 content = content.replace(img_match_prefix, "", 1)
                 context.type = ContextType.IMAGE_CREATE
             else:
-                context.type = ContextType.TEXT
+                retell_match_prefix = check_prefix(content, conf().get("retell_prefix"))
+                if retell_match_prefix:
+                    content = content.replace(retell_match_prefix, "", 1)
+                    context.type = ContextType.RETELL
+                    context["desire_rtype"] = ReplyType.VOICE
+                else:
+                    context.type = ContextType.TEXT
+
             context.content = content.strip()
             if "desire_rtype" not in context and conf().get("always_reply_voice") and ReplyType.VOICE not in self.NOT_SUPPORT_REPLYTYPE:
                 context["desire_rtype"] = ReplyType.VOICE
@@ -190,6 +197,8 @@ class ChatChannel(Channel):
             if context.type == ContextType.TEXT or context.type == ContextType.IMAGE_CREATE:  # 文字和图片消息
                 context["channel"] = e_context["channel"]
                 reply = super().build_reply_content(context.content, context)
+            elif context.type == ContextType.RETELL:  # 朗读命令
+                reply = super().build_text_to_voice(context.content)
             elif context.type == ContextType.VOICE:  # 语音消息
                 cmsg = context["msg"]
                 cmsg.prepare()
