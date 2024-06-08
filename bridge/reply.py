@@ -26,6 +26,7 @@ class Reply:
     def __init__(self, type: ReplyType = None, content=None):
         self.type = type
         self.content = content
+        self.orig_content = None
 
     def __str__(self):
-        return "Reply(type={}, content={})".format(self.type, self.content)
+        return "Reply(type={}, content={}, orig_content={})".format(self.type, self.content, self.orig_content)

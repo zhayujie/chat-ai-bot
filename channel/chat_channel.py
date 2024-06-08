@@ -251,6 +251,7 @@ class ChatChannel(Channel):
                     reply_text = reply.content
                     if desire_rtype == ReplyType.VOICE and ReplyType.VOICE not in self.NOT_SUPPORT_REPLYTYPE:
                         reply = super().build_text_to_voice(reply.content)
+                        reply.orig_content = reply_text
                         return self._decorate_reply(context, reply)
                     if context.get("isgroup", False):
                         if not context.get("no_need_at", False):

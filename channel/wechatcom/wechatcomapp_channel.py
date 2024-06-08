@@ -41,10 +41,11 @@ class WechatComAppChannel(ChatChannel):
         )
         self.crypto = WeChatCrypto(self.token, self.aes_key, self.corp_id)
         self.client = WechatComAppClient(self.corp_id, self.secret)
+        self.text_after_voice = conf().get("text_after_voice", False)
 
     def startup(self):
         # start message listener
-        urls = ("/wxcomapp", "channel.wechatcom.wechatcomapp_channel.Query")
+        urls = (conf().get("wechatcomapp_url", "/wxcomapp"), "channel.wechatcom.wechatcomapp_channel.Query")
         app = web.application(urls, globals(), autoreload=False)
         port = conf().get("wechatcomapp_port", 9898)
         web.httpserver.runsimple(app.wsgifunc(), ("0.0.0.0", port))
@@ -87,6 +88,12 @@ class WechatComAppChannel(ChatChannel):
                 self.client.message.send_voice(self.agent_id, receiver, media_id)
                 time.sleep(1)
             logger.info("[wechatcom] sendVoice={}, receiver={}".format(reply.content, receiver))
+
+            # if need text_after_voice
+            if self.text_after_voice and reply.orig_content:
+                logger.debug("[wechatcom] send text after voice: {}".format(reply.orig_content))
+                self.client.message.send_text(self.agent_id, receiver, reply.orig_content)
+
         elif reply.type == ReplyType.IMAGE_URL:  # 从网络下载图片
             img_url = reply.content
             pic_res = requests.get(img_url, stream=True)
