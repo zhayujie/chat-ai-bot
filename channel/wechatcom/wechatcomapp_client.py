@@ -1,8 +1,8 @@
 import threading
 import time
-
+import requests
 from wechatpy.enterprise import WeChatClient
-
+from config import conf
 
 class WechatComAppClient(WeChatClient):
     def __init__(self, corp_id, secret, access_token=None, session=None, timeout=None, auto_retry=True):
@@ -19,3 +19,21 @@ class WechatComAppClient(WeChatClient):
                 if self.expires_at - timestamp > 60:
                     return access_token
             return super().fetch_access_token()
+
+    def fetch_access_token_cs(self):
+        current_time = time.time()
+        if self.access_token and self.expires_at - current_time > 60:
+            return self.access_token
+
+        corpid = conf().get("wechatcom_corp_id")
+        corpsecret = conf().get("wechatcomapp_secret")
+        url = f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={corpid}&corpsecret={corpsecret}"
+
+        response = requests.get(url).json()
+        if 'access_token' in response:
+            self.access_token = response['access_token']
+            self.expires_at = current_time + response['expires_in'] - 60
+            print(f'access_token:{self.access_token}')
+            return self.access_token
+        else:
+            raise Exception("Failed to retrieve access token")

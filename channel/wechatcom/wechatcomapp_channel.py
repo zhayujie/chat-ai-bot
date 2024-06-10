@@ -52,13 +52,21 @@ class WechatComAppChannel(ChatChannel):
 
     def send(self, reply: Reply, context: Context):
         receiver = context["receiver"]
+        logger.debug("[wechatcom] context {} ".format(context.kwargs['msg']))
+        if context.kf_mode:
+            receiver = context.kwargs['msg'].from_user_id  # 客服模式下，external_userid 就是客户id
+            agent_id = context.kwargs['msg'].to_user_id  # 客服模式下，agent_id 就是客服id
+        else:
+            agent_id = self.agent_id  # 非客服模式下，agent_id 就是应用的 agent_id
+
         if reply.type in [ReplyType.TEXT, ReplyType.ERROR, ReplyType.INFO]:
             reply_text = reply.content
             texts = split_string_by_utf8_length(reply_text, MAX_UTF8_LEN)
             if len(texts) > 1:
                 logger.info("[wechatcom] text too long, split into {} parts".format(len(texts)))
             for i, text in enumerate(texts):
-                self.client.message.send_text(self.agent_id, receiver, text)
+                self.send_text_message(agent_id, receiver, text, context.kf_mode)
+
                 if i != len(texts) - 1:
                     time.sleep(0.5)  # 休眠0.5秒，防止发送过快乱序
             logger.info("[wechatcom] Do send text to {}: {}".format(receiver, reply_text))
@@ -85,14 +93,14 @@ class WechatComAppChannel(ChatChannel):
             except Exception:
                 pass
             for media_id in media_ids:
-                self.client.message.send_voice(self.agent_id, receiver, media_id)
+                self.send_voice_message(agent_id, receiver, media_id, context.kf_mode)
                 time.sleep(1)
             logger.info("[wechatcom] sendVoice={}, receiver={}".format(reply.content, receiver))
 
             # if need text_after_voice
             if self.text_after_voice and reply.orig_content:
                 logger.debug("[wechatcom] send text after voice: {}".format(reply.orig_content))
-                self.client.message.send_text(self.agent_id, receiver, reply.orig_content)
+                self.send_text_message(agent_id, receiver, reply.orig_content, context.kf_mode)
 
         elif reply.type == ReplyType.IMAGE_URL:  # 从网络下载图片
             img_url = reply.content
@@ -113,7 +121,7 @@ class WechatComAppChannel(ChatChannel):
                 logger.error("[wechatcom] upload image failed: {}".format(e))
                 return
 
-            self.client.message.send_image(self.agent_id, receiver, response["media_id"])
+            self.send_image_message(agent_id, receiver, response["media_id"], context.kf_mode)
             logger.info("[wechatcom] sendImage url={}, receiver={}".format(img_url, receiver))
         elif reply.type == ReplyType.IMAGE:  # 从文件读取图片
             image_storage = reply.content
@@ -129,10 +137,86 @@ class WechatComAppChannel(ChatChannel):
             except WeChatClientException as e:
                 logger.error("[wechatcom] upload image failed: {}".format(e))
                 return
-            self.client.message.send_image(self.agent_id, receiver, response["media_id"])
+            self.send_image_message(agent_id, receiver, response["media_id"], context.kf_mode)
             logger.info("[wechatcom] sendImage, receiver={}".format(receiver))
 
+    def send_text_message(self, agent_id, receiver, content, kf_mode):
+        if not kf_mode:
+            return self.client.message.send_text(agent_id, receiver, content)
 
+        url = f"https://qyapi.weixin.qq.com/cgi-bin/kf/send_msg?access_token={self.client.fetch_access_token_cs()}"
+        data = {
+            "touser": receiver,
+            "open_kfid": agent_id,
+            "msgtype": "text",
+            "text": {"content": content}
+        }
+
+        response = requests.post(url, json=data)
+        return response.json()
+
+    def send_image_message(self, agent_id, receiver, media_id, kf_mode):
+        if not kf_mode:
+            return self.client.message.send_image(agent_id, receiver, media_id)
+
+        url = f"https://qyapi.weixin.qq.com/cgi-bin/kf/send_msg?access_token={self.client.fetch_access_token_cs()}"
+        data = {
+            "touser": receiver,
+            "open_kfid": agent_id,
+            "msgtype": "image",
+            "image": {"media_id": media_id}
+        }
+
+        response = requests.post(url, json=data).json()
+        if response['errmsg'] == 'ok':
+            logger.debug(f"Send IMAGE Message Success")
+        else:
+            logger.error(f"Something error:{response}")
+        return response
+
+    def send_voice_message(self, agent_id, receiver, media_id, kf_mode):
+        if not kf_mode:
+            return self.client.message.send_voice(agent_id, receiver, media_id)
+
+        url = f"https://qyapi.weixin.qq.com/cgi-bin/kf/send_msg?access_token={self.client.fetch_access_token_cs()}"
+        data = {
+            "touser": receiver,
+            "open_kfid": agent_id,
+            "msgtype": "voice",
+            "voice": {"media_id": media_id}
+        }
+
+        response = requests.post(url, json=data).json()
+        if response['errmsg'] == 'ok':
+            logger.debug(f"Send VOICE Message Success")
+        else:
+            logger.error(f"Something error:{response}")
+        return response
+
+    def get_latest_message(self, token, open_kfid, next_cursor=""):
+        url = f"https://qyapi.weixin.qq.com/cgi-bin/kf/sync_msg?access_token={self.client.fetch_access_token_cs()}"
+        data = {
+            "token": token,
+            "open_kfid": open_kfid,
+            "limit": 1000
+        }
+        if next_cursor:
+            data["cursor"] = next_cursor
+
+        response = requests.post(url, json=data)
+        response_data = response.json()
+
+        # 检查是否有错误码并打印相关错误信息
+        if response_data.get("errcode") != 0:
+            logger.error(
+                f"[ERROR][{response_data.get('errcode')}][{response_data.get('errmsg')}] - Failed to fetch messages, more info at {response_data.get('more_info') or 'https://open.work.weixin.qq.com/devtool/query?e=' + str(response_data.get('errcode'))}")
+            return None
+
+        # logger.debug(f"response_data:{response_data}")
+        if response_data.get("msg_list"):
+            return response_data["msg_list"][-1]  # 返回最新的一条消息
+        else:
+            return None
 class Query:
     def GET(self):
         channel = WechatComAppChannel()
@@ -145,6 +229,7 @@ class Query:
             echostr = params.echostr
             echostr = channel.crypto.check_signature(signature, timestamp, nonce, echostr)
         except InvalidSignatureException:
+            logger.error("[wechatcom] Invalid signature in GET request")
             raise web.Forbidden()
         return echostr
 
@@ -157,10 +242,13 @@ class Query:
             timestamp = params.timestamp
             nonce = params.nonce
             message = channel.crypto.decrypt_message(web.data(), signature, timestamp, nonce)
+            msg = parse_message(message)
+            logger.debug("[wechatcom] receive message: {}, msg= {}".format(message, msg))
+
         except (InvalidSignatureException, InvalidCorpIdException):
             raise web.Forbidden()
-        msg = parse_message(message)
-        logger.debug("[wechatcom] receive message: {}, msg= {}".format(message, msg))
+
+        kf_msg = None
         if msg.type == "event":
             if msg.event == "subscribe":
                 reply_content = subscribe_msg()
@@ -168,18 +256,25 @@ class Query:
                     reply = create_reply(reply_content, msg).render()
                     res = channel.crypto.encrypt_message(reply, nonce, timestamp)
                     return res
-        else:
-            try:
-                wechatcom_msg = WechatComAppMessage(msg, client=channel.client)
-            except NotImplementedError as e:
-                logger.debug("[wechatcom] " + str(e))
+            elif msg.event == "kf_msg_or_event":
+                kf_msg = channel.get_latest_message(msg.token, msg.open_kfid)
+                logger.debug("[wechatcom] latest_message: {}".format(msg))
+            else:
+                logger.debug("[wechatcom] receive unsupported event: {}".format(msg.event))
                 return "success"
-            context = channel._compose_context(
-                wechatcom_msg.ctype,
-                wechatcom_msg.content,
-                isgroup=False,
-                msg=wechatcom_msg,
-            )
-            if context:
-                channel.produce(context)
+
+        try:
+            wechatcom_msg = WechatComAppMessage(msg, client=channel.client, kf_msg=kf_msg)
+        except NotImplementedError as e:
+            logger.debug("[wechatcom] " + str(e))
+            return "success"
+        context = channel._compose_context(
+            wechatcom_msg.ctype,
+            wechatcom_msg.content,
+            isgroup=False,
+            msg=wechatcom_msg,
+        )
+        if context:
+            context.kf_mode = kf_msg is not None    #是否客服模式
+            channel.produce(context)
         return "success"
