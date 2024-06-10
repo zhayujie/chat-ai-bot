@@ -48,12 +48,16 @@ available_setting = {
     "image_create_prefix": ["画", "看", "找"],  # 开启图片回复的前缀
     "concurrency_in_session": 1,  # 同一会话最多有多少条消息在处理中，大于1可能乱序
     "image_create_size": "256x256",  # 图片大小,可选有 256x256, 512x512, 1024x1024 (dall-e-3默认为1024x1024)
-    "group_chat_exit_group": False, 
+	"retell_prefix": ["请朗读"],  # 朗读前缀
+    "group_chat_exit_group": False,        
     # chatgpt会话参数
     "expires_in_seconds": 3600,  # 无操作会话的过期时间
     # 人格描述
     "character_desc": "你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。",
     "conversation_max_tokens": 1000,  # 支持上下文记忆的最多字符数
+    # 避免用户过长时间等待的响应（公众号）
+    "wait_timeout": 20, # 相应用户等待的超时时间
+    "wait_timeout_reply": "思考中，请稍候...", # 超时后的回复
     # chatgpt限流配置
     "rate_limit_chatgpt": 20,  # chatgpt的调用频率限制
     "rate_limit_dalle": 50,  # openai dalle的调用频率限制
@@ -94,6 +98,7 @@ available_setting = {
     "group_speech_recognition": False,  # 是否开启群组语音识别
     "voice_reply_voice": False,  # 是否使用语音回复语音，需要设置对应语音合成引擎的api key
     "always_reply_voice": False,  # 是否一直使用语音回复
+    "text_after_voice": False,  # 是否语音回复后增加文本回复
     "voice_to_text": "openai",  # 语音识别引擎，支持openai,baidu,google,azure
     "text_to_voice": "openai",  # 语音合成引擎，支持openai,baidu,google,pytts(offline),azure,elevenlabs,edge(online)
     "text_to_voice_model": "tts-1",
@@ -137,7 +142,7 @@ available_setting = {
     "wechatcomapp_secret": "",  # 企业微信app的secret
     "wechatcomapp_agent_id": "",  # 企业微信app的agent_id
     "wechatcomapp_aes_key": "",  # 企业微信app的aes_key
-
+    "wechatcomapp_url": "",  # 企业微信app的url前缀，默认为：/wxcomapp
     # 飞书配置
     "feishu_port": 80,  # 飞书bot监听端口
     "feishu_app_id": "",  # 飞书机器人应用APP Id

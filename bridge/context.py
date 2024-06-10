@@ -17,7 +17,7 @@ class ContextType(Enum):
     PATPAT = 21  # 拍了拍
     FUNCTION = 22  # 函数调用
     EXIT_GROUP = 23 #退出
-
+    RETELL = 30  # 文本朗读命令
 
     def __str__(self):
         return self.name
