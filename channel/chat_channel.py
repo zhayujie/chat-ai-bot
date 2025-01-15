@@ -258,7 +258,18 @@ class ChatChannel(Channel):
                             reply_text = "@" + context["msg"].actual_user_nickname + "\n" + reply_text.strip()
                         reply_text = conf().get("group_chat_reply_prefix", "") + reply_text + conf().get("group_chat_reply_suffix", "")
                     else:
-                        reply_text = conf().get("single_chat_reply_prefix", "") + reply_text + conf().get("single_chat_reply_suffix", "")
+                         # 单聊处理
+                         prefix = conf().get("single_chat_reply_prefix", "")
+                         suffix = conf().get("single_chat_reply_suffix", "")
+                         # 确保 prefix 和 suffix 为字符串
+                         if isinstance(prefix, list):
+                            prefix = ''.join(prefix)
+                         if isinstance(suffix, list):
+                            suffix = ''.join(suffix)
+                         reply_text = prefix + reply_text + suffix
+                    # 确保 reply.content 最终为字符串
+                    if isinstance(reply.content, list):
+                        reply.content = ''.join(reply.content)
                     reply.content = reply_text
                 elif reply.type == ReplyType.ERROR or reply.type == ReplyType.INFO:
                     reply.content = "[" + str(reply.type) + "]\n" + reply.content

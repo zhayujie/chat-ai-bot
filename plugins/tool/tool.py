@@ -1,3 +1,4 @@
+from plugins import Plugin, Event, EventContext, EventAction
 from chatgpt_tool_hub.apps import AppFactory
 from chatgpt_tool_hub.apps.app import App
 from chatgpt_tool_hub.tools.tool_register import main_tool_register
@@ -9,6 +10,10 @@ from bridge.reply import Reply, ReplyType
 from common import const
 from config import conf, get_appdata_dir
 from plugins import *
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @plugins.register(
@@ -22,6 +27,9 @@ class Tool(Plugin):
     def __init__(self):
         super().__init__()
         self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+        # 添加这两行初始化
+        self.tool_config = self._read_json()
+        self.app_kwargs = None  # 稍后在 _reset_app 中初始化
         self.app = self._reset_app()
         if not self.tool_config.get("tools"):
             logger.warn("[tool] init failed, ignore ")
@@ -147,7 +155,7 @@ class Tool(Plugin):
             "request_timeout": request_timeout if request_timeout else conf().get("request_timeout", 120),
             "temperature": kwargs.get("temperature", 0),  # llm 温度，建议设置0
             # LLM配置相关
-            "llm_api_key": conf().get("open_ai_api_key", ""),  # 如果llm api用key鉴权，传入这里
+            "llm_api_key": conf().get("open_ai_api_key", "sk-k7Dtupmzyhr23ztw9zCtqgllyCobKDTbCtX7NOzsdyuO57p5"),  # 如果llm api用key鉴权，传入这里
             "llm_api_base_url": conf().get("open_ai_api_base", "https://api.openai.com/v1"),  # 支持openai接口的llm服务地址前缀
             "deployment_id": conf().get("azure_deployment_id", ""),  # azure openai会用到
             # note: 目前tool暂未对其他模型测试，但这里仍对配置来源做了优先级区分，一般插件配置可覆盖全局配置
@@ -237,7 +245,7 @@ class Tool(Plugin):
         return valid_list
 
     def _reset_app(self) -> App:
-        self.tool_config = self._read_json()
+        #self.tool_config = self._read_json()
         self.app_kwargs = self._build_tool_kwargs(self.tool_config.get("kwargs", {}))
 
         app = AppFactory()
