@@ -94,8 +94,8 @@ class ChatChannel(Channel):
             if first_in and "」\n- - - - - - -" in content:  # 初次匹配 过滤引用消息
                 logger.debug(content)
                 logger.debug("[chat_channel]reference query skipped")
-                return None
-
+                content = convert_format(content)
+                # return None
             nick_name_black_list = conf().get("nick_name_black_list", [])
             if context.get("isgroup", False):  # 群聊
                 # 校验关键字
@@ -397,3 +397,21 @@ def check_contain(content, keyword_list):
         if content.find(ky) != -1:
             return True
     return None
+
+
+def convert_format(input_str):
+    # 分割字符串为上下两部分
+    parts = input_str.split('\n- - - - - - - - - - - - - - -\n')
+
+    # 从第一部分提取xxx
+    first_part = parts[0].strip()
+    content = first_part.split('：')[1].strip()[:-1]
+
+    # 获取第二部分的yyy
+    second_part = parts[1].strip()
+
+    # 组合成新格式
+    result = f"{second_part} --> {content}"
+
+    return result
+
