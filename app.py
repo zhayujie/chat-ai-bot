@@ -20,6 +20,7 @@ def sigterm_handler_wrap(_signo):
         conf().save_user_datas()
         if callable(old_handler):  #  check old_handler
             return old_handler(_signo, _stack_frame)
+        stop_event.set()
         sys.exit(0)
 
     signal.signal(_signo, func)
@@ -27,9 +28,6 @@ def sigterm_handler_wrap(_signo):
 
 def start_channel(channel_name: str):
     channel = channel_factory.create_channel(channel_name)
-    if channel_name in ["wx", "wxy", "terminal", "wechatmp","web", "wechatmp_service", "wechatcom_app", "wework",
-                        const.FEISHU, const.DINGTALK]:
-        PluginManager().load_plugins()
 
     if conf().get("use_linkai"):
         try:
@@ -40,6 +38,7 @@ def start_channel(channel_name: str):
     channel.startup()
 
 
+stop_event = threading.Event()
 def run():
     try:
         # load config
@@ -49,19 +48,20 @@ def run():
         # kill signal
         sigterm_handler_wrap(signal.SIGTERM)
 
-        # create channel
-        channel_name = conf().get("channel_type", "wx")
+        PluginManager().load_plugins()
+        
+        channel_name = "terminal" if "--cmd" in sys.argv else conf().get("channel_type", "wx")
+        channel_names = conf().get("channel_types", [])
+        if channel_name not in channel_names:
+            channel_names.append(channel_name)
+        channel_names=list(set(channel_names))
 
-        if "--cmd" in sys.argv:
-            channel_name = "terminal"
-
-        if channel_name == "wxy":
-            os.environ["WECHATY_LOG"] = "warn"
-
-        start_channel(channel_name)
-
-        while True:
-            time.sleep(1)
+        for name in channel_names:
+            if name == "wxy":
+                os.environ["WECHATY_LOG"] = "warn"
+            threading.Thread(target=start_channel, args=(name,)).start()
+      
+        stop_event.wait()
     except Exception as e:
         logger.error("App startup failed!")
         logger.exception(e)
