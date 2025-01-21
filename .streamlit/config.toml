@@ -1,0 +1,7 @@
+[browser]
+# 或允许局域网访问
+serverAddress = "0.0.0.0"
+
+serverPort = 8501
+
+gatherUsageStats = false

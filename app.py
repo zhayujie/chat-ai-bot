@@ -4,13 +4,14 @@ import os
 import signal
 import sys
 import time
+import subprocess
 
 from channel import channel_factory
 from common import const
 from config import load_config
 from plugins import *
 import threading
-
+from CoW_web import Home
 
 def sigterm_handler_wrap(_signo):
     old_handler = signal.getsignal(_signo)
@@ -67,5 +68,38 @@ def run():
         logger.exception(e)
 
 
+def start_web_interface():
+    """启动Web界面"""
+    try:
+        # 获取当前脚本所在的目录
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # 使用subprocess启动streamlit,并设置PYTHONPATH
+        process = subprocess.Popen(
+            ["streamlit", "run", "CoW_web/Home.py"],
+            # 直接显示输出到控制台
+            stdout=None,
+            stderr=None,
+            env={
+                **os.environ,
+                "PYTHONPATH": current_dir  # 添加当前目录到PYTHONPATH
+            },
+            cwd=current_dir  # 设置工作目录为当前目录
+        )
+        return process
+    except Exception as e:
+        logger.error(f"Failed to start web interface: {e}")
+        return None
+
+
 if __name__ == "__main__":
-    run()
+    # 启动web界面
+    web_process = start_web_interface()
+    
+    # 运行后端服务
+    try:
+        run()
+    finally:
+        # 确保在主程序退出时关闭web界面
+        if web_process:
+            web_process.terminate()
