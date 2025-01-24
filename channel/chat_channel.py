@@ -147,6 +147,10 @@ class ChatChannel(Channel):
                     pass
                 else:
                     return None
+
+                if skip_reply(content, conf().get("single_chat_keywords", [])):
+                    return None
+
             content = content.strip()
             img_match_prefix = check_prefix(content, conf().get("image_create_prefix",[""]))
             if img_match_prefix:
@@ -388,6 +392,15 @@ def check_prefix(content, prefix_list):
         if content.startswith(prefix):
             return prefix
     return None
+
+
+def skip_reply(content, keywords):
+    if not keywords:
+        return False
+    for keyword in keywords:
+        if keyword in content:
+            return False
+    return True
 
 
 def check_contain(content, keyword_list):

@@ -12,6 +12,7 @@
     "bot",
     "@bot"
   ],
+  "single_chat_keywords": [],
   "single_chat_reply_prefix": "[bot] ",
   "group_chat_prefix": [
     "@bot"
