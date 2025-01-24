@@ -1,0 +1,49 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天运行一次
+  workflow_dispatch: # 手动触发工作流
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: 'zhayujie/chatgpt-on-wechat' # 上游仓库
+          ref: 'master' # 分支名
+
+      - name: Backup sync.yml
+        run: |
+          if [ -f .github/workflows/sync.yml ]; then
+            mkdir -p /tmp/${{ github.repository }}
+            cp .github/workflows/sync.yml /tmp/${{ github.repository }}/sync.yml
+          fi
+
+      - name: Sync with upstream
+        run: |
+          git remote add upstream https://github.com/zhayujie/chatgpt-on-wechat.git
+          git fetch upstream
+          git checkout master
+          git rebase upstream/master
+
+      - name: Restore sync.yml
+        run: |
+          if [ -f /tmp/${{ github.repository }}/sync.yml ]; then
+            cp /tmp/${{ github.repository }}/sync.yml .github/workflows/sync.yml
+          fi
+
+      - name: Push changes
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          if [ -f .github/workflows/sync.yml ]; then
+            git add .github/workflows/sync.yml
+            git commit -m "Restore sync.yml"
+            git push origin master --force
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
