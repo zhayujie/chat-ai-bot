@@ -66,7 +66,6 @@ GLM_4 = "glm-4"
 GLM_4_PLUS = "glm-4-plus"
 GLM_4_flash = "glm-4-flash"
 GLM_4_LONG = "glm-4-long"
-GLM_4_ALLTOOLS = "glm-4-alltools"
 GLM_4_0520 = "glm-4-0520"
 GLM_4_AIR = "glm-4-air"
 GLM_4_AIRX = "glm-4-airx"
@@ -89,7 +88,7 @@ MODEL_LIST = [
               O1, O1_MINI, GPT_4o, GPT_4O_0806, GPT_4o_MINI, GPT4_TURBO, GPT4_TURBO_PREVIEW, GPT4_TURBO_01_25, GPT4_TURBO_11_06, GPT4, GPT4_32k, GPT4_06_13, GPT4_32k_06_13,
               WEN_XIN, WEN_XIN_4,
               XUNFEI,
-              ZHIPU_AI, GLM_4, GLM_4_PLUS, GLM_4_flash, GLM_4_LONG, GLM_4_ALLTOOLS, GLM_4_0520, GLM_4_AIR, GLM_4_AIRX,
+              ZHIPU_AI, GLM_4, GLM_4_PLUS, GLM_4_flash, GLM_4_LONG, GLM_4_0520, GLM_4_AIR, GLM_4_AIRX,
               MOONSHOT, MiniMax,
               GEMINI, GEMINI_PRO, GEMINI_15_flash, GEMINI_15_PRO,GEMINI_20_flash_exp,
               CLAUDE_3_OPUS, CLAUDE_3_OPUS_0229, CLAUDE_35_SONNET, CLAUDE_35_SONNET_1022, CLAUDE_35_SONNET_0620, CLAUDE_3_SONNET, CLAUDE_3_HAIKU, "claude", "claude-3-haiku", "claude-3-sonnet", "claude-3-opus", "claude-3.5-sonnet",
