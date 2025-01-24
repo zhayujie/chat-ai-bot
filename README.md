@@ -299,6 +299,22 @@ volumes:
 
 <br>
 
+### 5. Sealos部署
+
+> [Sealos](https://sealos.io) 的服务器在国外，不需要额外处理网络问题，无需服务器、无需魔法、无需域名，支持高并发 & 动态伸缩。点击以下按钮即可一键部署 👇
+
+1. 进入 [Sealos](https://bja.sealos.run/?openapp=system-template%3FtemplateName%3Dchatgpt-on-wechat)
+2. 设置环境变量来重载程序运行的参数，例如`OPEN_AI_API_KEY`, `CHANNEL_TYPE`。
+3. 点击 `部署应用` 按钮。
+
+**一键部署:**
+  
+  [![Deploy on Sealos](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://bja.sealos.run/?openapp=system-template%3FtemplateName%3Dchatgpt-on-wechat)
+
+<br>
+
+
+
 # 🔎 常见问题
 
 FAQs： <https://github.com/zhayujie/chatgpt-on-wechat/wiki/FAQs>
