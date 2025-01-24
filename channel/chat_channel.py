@@ -65,14 +65,17 @@ class ChatChannel(Channel):
                     ]
                 ):
                     group_chat_in_one_session = conf().get("group_chat_in_one_session", [])
+                    group_chat_in_one_session_id = conf().get("group_chat_in_one_session_id", [])
                     session_id = cmsg.actual_user_id
                     if any(
                         [
                             group_name in group_chat_in_one_session,
                             "ALL_GROUP" in group_chat_in_one_session,
+                            group_id in group_chat_in_one_session_id,
                         ]
                     ):
                         session_id = group_id
+                        logger.info(f"Group chat in one session, group_name={group_name}, group_id={group_id}")
                 else:
                     logger.debug(f"No need reply, groupName not in whitelist, group_name={group_name}")
                     return None
@@ -114,7 +117,10 @@ class ChatChannel(Channel):
                             logger.warning(f"[chat_channel] Nickname {nick_name} in In BlackList, ignore")
                             return None
 
-                        logger.info("[chat_channel]receive group at")
+                        logger.info("[chat_channel]receive group at: group_name: {}; group_id: {}".format(
+                            context["msg"].other_user_nickname,
+                            context["msg"].other_user_id,
+                        ))
                         if not conf().get("group_at_off", False):
                             flag = True
                         self.name = self.name if self.name is not None else ""  # 部分渠道self.name可能没有赋值
