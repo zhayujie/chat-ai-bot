@@ -22,6 +22,11 @@ class Session(object):
         self.reset()
 
     def add_query(self, query):
+        split_result = query.split(' --> ')
+        if len(split_result) == 2:
+            self.messages.append({"role": "user", "content": split_result[1]})
+            self.messages.append({"role": "user", "content": split_result[0]})
+            return
         user_item = {"role": "user", "content": query}
         self.messages.append(user_item)
 
