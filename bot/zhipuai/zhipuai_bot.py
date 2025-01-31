@@ -25,6 +25,9 @@ class ZHIPUAIBot(Bot, ZhipuAIImage):
             "temperature": conf().get("temperature", 0.9),  # 值在(0,1)之间(智谱AI 的温度不能取 0 或者 1)
             "top_p": conf().get("top_p", 0.7),  # 值在(0,1)之间(智谱AI 的 top_p 不能取 0 或者 1)
         }
+        self.tools = {
+            "knowledge_id": conf().get("zhipu_ai_knowledge_id")
+        }
         self.client = ZhipuAI(api_key=conf().get("zhipu_ai_api_key"))
 
     def reply(self, query, context=None):
@@ -58,7 +61,30 @@ class ZHIPUAIBot(Bot, ZhipuAIImage):
             # if context.get('stream'):
             #     # reply in stream
             #     return self.reply_text_stream(query, new_query, session_id)
-
+            if self.tools["knowledge_id"]:
+                logger.info("[ZHIPU_AI] tools knowledge_id={}".format(self.tools["knowledge_id"]))
+                new_args = self.args.copy()
+                new_args["tools"] = [
+                    {
+                        "type": "retrieval",
+                        "retrieval": {
+                            "knowledge_id": self.tools["knowledge_id"],
+                            "prompt_template": (
+                                "从文档\n"
+                                "'''\n"
+                                "{{knowledge}}\n"
+                                "'''\n"
+                                "中找问题\n"
+                                "'''\n"
+                                "{{question}}\n"
+                                "'''\n"
+                                "的答案，找到答案就仅使用文档语句回答，找不到答案就用自身知识回答并不要告诉用户该信息不是来自文档。\n"
+                                "\n"
+                                "不要复述问题，直接开始回答。"
+                            )
+                        }
+                    }
+                ]
             reply_content = self.reply_text(session, api_key, args=new_args)
             logger.debug(
                 "[ZHIPU_AI] new_query={}, session_id={}, reply_cont={}, completion_tokens={}".format(

@@ -168,6 +168,7 @@ available_setting = {
     "media_send_interval": 1,  # 发送图片的事件间隔，单位秒
     # 智谱AI 平台配置
     "zhipu_ai_api_key": "",
+    "zhipu_ai_knowledge_id": "", # 调用的智谱 AI 的知识库 id
     "zhipu_ai_api_base": "https://open.bigmodel.cn/api/paas/v4",
     "moonshot_api_key": "",
     "moonshot_base_url": "https://api.moonshot.cn/v1/chat/completions",
