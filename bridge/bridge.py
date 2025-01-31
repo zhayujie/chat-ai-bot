@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append('../')
+
 from bot.bot_factory import create_bot
 from bridge.context import Context
 from bridge.reply import Reply
